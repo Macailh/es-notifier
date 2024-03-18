@@ -11,7 +11,7 @@ sns_client = boto3.client("sns")
 @router.post("/emails")
 def send_email(recipient: str):
     try:
-        response = ses_client.send_email(
+        ses_client.send_email(
             Source=SENDER,
             Destination={"ToAddresses": [recipient]},
             Message={
@@ -22,16 +22,16 @@ def send_email(recipient: str):
                 },
             },
         )
-        return response
+        return {"message": "Email send successfully"}
     except ClientError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/sms")
 def send_sms(recipient: str, message: str):
     try:
-        response = sns_client.publish(PhoneNumber=recipient, Message=message)
+        sns_client.publish(PhoneNumber=recipient, Message=message)
 
-        return response
+        return {"message": "SMS send successfully"}
     except ClientError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
