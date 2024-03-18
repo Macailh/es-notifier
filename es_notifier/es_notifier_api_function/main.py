@@ -1,27 +1,21 @@
 import boto3
 from fastapi import FastAPI, HTTPException
 from botocore.exceptions import ClientError
+import os
+
+SENDER = os.getenv("SENDER")
 
 app = FastAPI()
 sns_client = boto3.client("sns")
 ses_client = boto3.client("ses")
 
 
-@app.get("/")
-def root():
-    return {"message": "root"}
-
-
 @app.post("/emails")
-def send_email():
+def send_email(recipient: str):
     try:
         response = ses_client.send_email(
-            Source="example_source@mail.com",
-            Destination={
-                "ToAddresses": [
-                    "example_destination@mail.com",
-                ]
-            },
+            Source=SENDER,
+            Destination={"ToAddresses": [recipient]},
             Message={
                 "Subject": {"Data": "Example subject"},
                 "Body": {
@@ -36,11 +30,9 @@ def send_email():
 
 
 @app.post("/sms")
-def send_sms():
+def send_sms(recipient: str, message: str):
     try:
-        response = sns_client.publish(
-            PhoneNumber="+521234567890", Message="Example message"
-        )
+        response = sns_client.publish(PhoneNumber=recipient, Message=message)
 
         return response
     except ClientError as e:
