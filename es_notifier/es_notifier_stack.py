@@ -12,6 +12,8 @@ class EsNotifierStack(Stack):
 
         exclude_files = ["__pycache__", "test/", "local.py"]
 
+        # es_notifier_api_function_layer
+
         es_notifier_api_function = _lambda.Function(
             self,
             "EsNotifierApiFunction",
@@ -34,7 +36,39 @@ class EsNotifierStack(Stack):
         root_resource = es_notifier_api_gateway.root
         api_resource = root_resource.add_resource("api")
         v1_resource = api_resource.add_resource("v1")
-        proxy_resource = v1_resource.add_proxy(any_method=True)
+        proxy_resource = v1_resource.add_proxy(
+            any_method=True,
+            default_method_options=apigateway.MethodOptions(api_key_required=True),
+        )
+
+        docs_resource = root_resource.add_resource("docs")
+        docs_resource.add_method("GET")
+
+        openapi_resource = root_resource.add_resource("openapi.json")
+        openapi_resource.add_method("GET")
+
+        es_notifier_api_key = apigateway.ApiKey(
+            self,
+            "EsNotifierApiKey",
+            api_key_name="esNotifierApiKey",
+            description="API key for esNotifierApi",
+        )
+
+        es_notifier_api_usage_plan = apigateway.UsagePlan(
+            self,
+            "EsNotifierApiUsagePlan",
+            name="esNotifierApiUsagePlan",
+            api_stages=[
+                apigateway.UsagePlanPerApiStage(
+                    api=es_notifier_api_gateway,
+                    stage=es_notifier_api_gateway.deployment_stage,
+                )
+            ],
+            throttle=apigateway.ThrottleSettings(rate_limit=10, burst_limit=2),
+            quota=apigateway.QuotaSettings(limit=1000, period=apigateway.Period.MONTH),
+        )
+
+        es_notifier_api_usage_plan.add_api_key(es_notifier_api_key)
 
         # Create a CloudFormation Custom Resource to update the Lambda function after creation
         api_url_updater = crs.AwsCustomResource(
