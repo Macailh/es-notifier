@@ -89,7 +89,28 @@ class EsNotifierStack(Stack):
                 parameters={
                     "FunctionName": es_notifier_api_function.function_name,
                     "Environment": {
-                        "Variables": {"API_URL": es_notifier_api_gateway.url}
+                        "Variables": {
+                            "API_URL": es_notifier_api_gateway.url,
+                            "ROOT_PATH": "/"
+                            + es_notifier_api_gateway.deployment_stage.stage_name,
+                        }
+                    },
+                },
+                physical_resource_id=crs.PhysicalResourceId.of(
+                    es_notifier_api_function.function_name
+                ),
+            ),
+            on_update=crs.AwsSdkCall(
+                action="updateFunctionConfiguration",
+                service="Lambda",
+                parameters={
+                    "FunctionName": es_notifier_api_function.function_name,
+                    "Environment": {
+                        "Variables": {
+                            "API_URL": es_notifier_api_gateway.url,
+                            "ROOT_PATH": "/"
+                            + es_notifier_api_gateway.deployment_stage.stage_name,
+                        }
                     },
                 },
                 physical_resource_id=crs.PhysicalResourceId.of(
