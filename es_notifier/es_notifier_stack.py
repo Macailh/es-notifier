@@ -12,7 +12,12 @@ class EsNotifierStack(Stack):
 
         exclude_files = ["__pycache__", "test/", "local.py"]
 
-        # es_notifier_api_function_layer
+        es_notifier_api_function_layer = _lambda.LayerVersion(
+            self,
+            "esNotifierApiFunctionLayer",
+            code=_lambda.Code.from_asset("es_notifier/es_notifier_api_function_layer"),
+            compatible_runtimes=[_lambda.Runtime.PYTHON_3_12],
+        )
 
         es_notifier_api_function = _lambda.Function(
             self,
@@ -23,6 +28,7 @@ class EsNotifierStack(Stack):
             code=_lambda.Code.from_asset(
                 "es_notifier/es_notifier_api_function", exclude=exclude_files
             ),
+            layers=[es_notifier_api_function_layer],
         )
 
         es_notifier_api_gateway = apigateway.LambdaRestApi(

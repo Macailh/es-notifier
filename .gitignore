@@ -12,3 +12,6 @@ cdk.out
 .env
 .env.local
 .env.prod
+
+es_notifier/es_notifier_api_function_layer/python/*
+!es_notifier/es_notifier_api_function_layer/python/README.md
