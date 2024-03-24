@@ -11,4 +11,4 @@ app.include_router(notifier_router.router, prefix="/api/v1")
 
 
 if __name__ == "__main__":
-    uvicorn.run("local:app", host="localhost", port=8000)
+    uvicorn.run("local:app", host="localhost", port=8000, reload=True)
