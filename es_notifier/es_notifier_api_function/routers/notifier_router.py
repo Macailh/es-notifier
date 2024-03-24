@@ -10,16 +10,16 @@ ses_client_v2 = boto3.client("sesv2")
 
 
 @router.post("/emails")
-def send_email(recipient: str):
+def send_email(recipient: str, subject: str, message: str):
     try:
         ses_client.send_email(
             Source=SENDER,
             Destination={"ToAddresses": [recipient]},
             Message={
-                "Subject": {"Data": "Example subject"},
+                "Subject": {"Data": subject},
                 "Body": {
-                    "Text": {"Data": "Example body"},
-                    "Html": {"Data": "<h2>Example body</h2>"},
+                    "Text": {"Data": message},
+                    "Html": {"Data": f"<p>{message}</p>"},
                 },
             },
         )
