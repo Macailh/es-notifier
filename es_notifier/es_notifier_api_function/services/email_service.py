@@ -1,4 +1,5 @@
 import boto3
+import logging
 from botocore.exceptions import ClientError
 from config.env import SENDER
 
@@ -22,6 +23,7 @@ def send_email(recipient: str, subject: str, message: str):
         )
         return {"message": "Email send successfully"}
     except ClientError as e:
+        logging.error(e)
         raise e
 
 
@@ -52,4 +54,5 @@ def send_email_to_topic(recipient: str, message: str):
         )
         return {"message": "Email send successfully"}
     except ClientError as e:
+        logging.error(e)
         raise e
