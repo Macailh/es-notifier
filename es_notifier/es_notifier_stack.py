@@ -1,7 +1,9 @@
+import os
 from aws_cdk import Stack
 from aws_cdk import aws_lambda as _lambda
 from aws_cdk import aws_apigateway as apigateway
 from aws_cdk import custom_resources as crs
+from aws_cdk import aws_iam as iam
 from constructs import Construct
 
 
@@ -19,6 +21,20 @@ class EsNotifierStack(Stack):
             compatible_runtimes=[_lambda.Runtime.PYTHON_3_12],
         )
 
+        es_notifier_api_function_role = iam.Role(
+            self,
+            "EsNotifierApiFunctionRole",
+            role_name="EsNotifierApiFunctionRole",
+            assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    "service-role/AWSLambdaBasicExecutionRole"
+                ),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSESFullAccess"),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSNSFullAccess"),
+            ],
+        )
+
         es_notifier_api_function = _lambda.Function(
             self,
             "EsNotifierApiFunction",
@@ -29,6 +45,7 @@ class EsNotifierStack(Stack):
                 "es_notifier/es_notifier_api_function", exclude=exclude_files
             ),
             layers=[es_notifier_api_function_layer],
+            role=es_notifier_api_function_role,
         )
 
         es_notifier_api_gateway = apigateway.LambdaRestApi(
@@ -93,6 +110,7 @@ class EsNotifierStack(Stack):
                             "API_URL": es_notifier_api_gateway.url,
                             "ROOT_PATH": "/"
                             + es_notifier_api_gateway.deployment_stage.stage_name,
+                            "SENDER": os.getenv("SENDER", ""),
                         }
                     },
                 },
@@ -110,6 +128,7 @@ class EsNotifierStack(Stack):
                             "API_URL": es_notifier_api_gateway.url,
                             "ROOT_PATH": "/"
                             + es_notifier_api_gateway.deployment_stage.stage_name,
+                            "SENDER": os.getenv("SENDER", ""),
                         }
                     },
                 },
